@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Удаление аккаунта — Telegram</title>
+<style>
+body {
+  margin: 0;
+  font-family: Helvetica, Arial, sans-serif;
+  background-color: #ffffff;
+  color: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* Canvas для частиц */
+#particle-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background: #ffffff;
+}
+
+/* Верхняя панель */
+.top-bar {
+  width: 100%;
+  background-color: #f3f3f3;
+  border-bottom: 1px solid #d1d1d6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.logo img { width: 28px; height: 28px; }
+.menu { display: flex; gap: 15px; }
+.menu button {
+  background: none;
+  border: none;
+  color: #007AFF;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.2s, transform 0.1s;
+}
+.menu button:hover { color: #005BB5; transform: translateY(-1px); }
+.menu button:active { transform: translateY(1px); }
+
+/* Основной контейнер */
+.container {
+  width: 400px;
+  max-width: 90%;
+  padding: 30px;
+  text-align: center;
+  flex: 1;
+  border-bottom: 1px solid #d1d1d6;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+h1 { font-size: 22px; margin-bottom: 15px; font-weight: bold; }
+p { font-size: 16px; color: #333; margin-bottom: 30px; line-height: 1.5; }
+
+.buttons { display: flex; justify-content: center; gap: 12px; }
+
+.buttons button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  position: relative;
+}
+.buttons button:hover { transform: translateY(-1px); }
+.buttons button:active { transform: translateY(1px); }
+
+.delete-btn { background-color: #007AFF; color: white; min-width: 150px; }
+.delete-btn:hover { background-color: #005BB5; }
+.cancel-btn { background-color: #E5E5EA; color: #000; }
+.cancel-btn:hover { background-color: #D1D1D6; }
+
+.footer {
+  font-size: 12px;
+  color: #888;
+  margin: 20px 0;
+  width: 100%;
+  text-align: center;
+  border-top: 1px solid #d1d1d6;
+  padding-top: 10px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+#deleteBtn span { transition: all 0.3s ease; }
+.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<canvas id="particle-canvas"></canvas>
+
+<div class="top-bar">
+  <div class="logo">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram Logo">
+  </div>
+  <div class="menu">
+    <button class="sound-btn">Home</button>
+    <button class="sound-btn">FAQ</button>
+    <button class="sound-btn">Apps</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- 🔵 ДОБАВЛЕННАЯ ОФИЦИАЛЬНАЯ ИЛЛЮСТРАЦИЯ -->
+  <img 
+    src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPsAAADjCAYAAABD92JQAAAAAXNSR0IArs4c6QA...(base64 полный)..." 
+    alt="Telegram Illustration" 
+    style="width:160px; margin-bottom:20px; opacity:0; transform:translateY(20px); transition:opacity 0.8s ease, transform 0.8s ease;" 
+    class="ill">
+
+  <h1>Удалить аккаунт?</h1>
+  <p>Если вы удалите свой аккаунт, все ваши сообщения и контакты будут безвозвратно удалены. Все созданные вами группы и каналы останутся без создателя.</p>
+
+  <div class="buttons">
+    <button class="delete-btn sound-btn" id="deleteBtn"><span>Удалить</span></button>
+    <button class="cancel-btn sound-btn">Отмена</button>
+  </div>
+</div>
+
+<div class="footer">© Telegram</div>
+
+<script>
+// --- Частицы ---
+const canvas = document.getElementById('particle-canvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+let mouse = {x: null, y: null};
+window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+
+let particles = [];
+const particleCount = 80;
+for (let i = 0; i < particleCount; i++) {
+  particles.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    size: Math.random() * 3 + 1,
+    speedX: (Math.random() - 0.5) * 0.5,
+    speedY: (Math.random() - 0.5) * 0.5,
+    opacity: Math.random() * 0.3 + 0.2
+  });
+}
+
+function drawParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      let dx = particles[i].x - particles[j].x;
+      let dy = particles[i].y - particles[j].y;
+      let dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 100) {
+        let alpha = 0.2 - dist/500;
+        if (mouse.x && mouse.y) {
+          let mdist = Math.hypot(particles[i].x - mouse.x, particles[i].y - mouse.y);
+          if (mdist < 150) alpha += 0.15;
+        }
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(200,200,255,${alpha})`;
+        ctx.lineWidth = 1;
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+
+  particles.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(200,200,255,${p.opacity})`;
+    ctx.fill();
+
+    if(mouse.x && mouse.y){
+      let dx = mouse.x - p.x;
+      let dy = mouse.y - p.y;
+      let dist = Math.sqrt(dx*dx + dy*dy);
+      if(dist < 100) { p.x += dx*0.002; p.y += dy*0.002; }
+    }
+
+    p.x += p.speedX;
+    p.y += p.speedY;
+
+    if (p.x < 0) p.x = canvas.width;
+    if (p.x > canvas.width) p.x = 0;
+    if (p.y < 0) p.y = canvas.height;
+    if (p.y > canvas.height) p.y = 0;
+  });
+
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+// --- Анимация интерфейса ---
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => document.querySelector('.top-bar').classList.add('show'), 100);
+  setTimeout(() => document.querySelector('.ill').classList.add('show'), 250);
+  setTimeout(() => document.querySelector('.container').classList.add('show'), 300);
+  setTimeout(() => document.querySelector('.footer').classList.add('show'), 500);
+});
+
+// --- Звуки и пранк с повторением ---
+const soundHoverUrl = 'https://www.soundjay.com/button/beep-07.wav';
+const soundClickUrl = 'sound-me.mp3';
+
+function prankRedirect() {
+  const audio = new Audio(soundClickUrl);
+  audio.volume = 1.0;
+  audio.loop = true; // 🔹 звук повторяется
+  audio.play().catch(e => console.log('Звук заблокирован'));
+
+  setTimeout(() => {
+    document.body.innerHTML = `
+      <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; text-align:center;">
+        <h1 style="font-size:36px; color:#007AFF;">Вас разыграли!</h1>
+        <p style="font-size:18px; color:#333;">Это был пранк. Ваш аккаунт в безопасности.</p>
+      </div>`;
+  }, 100);
+}
+
+const soundButtons = document.querySelectorAll('.sound-btn');
+soundButtons.forEach(btn => {
+  btn.addEventListener('click', prankRedirect);
+  btn.addEventListener('mouseenter', () => {
+    const hoverAudio = new Audio(soundHoverUrl);
+    hoverAudio.volume = 0.3;
+    hoverAudio.play().catch(e => console.log('Звук hover заблокирован'));
+  });
+});
+
+// --- Таймер ---
+const deleteBtn = document.getElementById('deleteBtn');
+const deleteSpan = deleteBtn.querySelector('span');
+let countdown = 30;
+const timer = setInterval(() => {
+  deleteSpan.textContent = `Удалить (${countdown}s)`;
+  countdown--;
+  if (countdown < 0) { clearInterval(timer); deleteSpan.textContent = 'Удалить'; }
+}, 1000);
+</script>
+</body>
+</html>
